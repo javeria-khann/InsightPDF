@@ -9,6 +9,11 @@ export type ReportData = {
     label: string;
     href: string;
   }[];
+  searchResults: {
+    title: string;
+    href: string;
+    snippet: string;
+  }[];
   sections: {
     label: string;
     body: string;

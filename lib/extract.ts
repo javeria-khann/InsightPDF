@@ -10,9 +10,16 @@ export type ExtractedPage = {
     label: string;
     href: string;
   }[];
+  searchResults: SearchResult[];
   text: string;
   wordCount: number;
   lowText: boolean;
+};
+
+type SearchResult = {
+  title: string;
+  href: string;
+  snippet: string;
 };
 
 export function validatePublicUrl(value: string) {
@@ -92,7 +99,7 @@ export async function fetchAndExtract(url: string): Promise<ExtractedPage> {
     .filter(Boolean)
     .slice(0, 16);
 
-  const notableLinks = $("a[href]")
+  const rawNotableLinks = $("a[href]")
     .map((_, el) => {
       const label = clean($(el).text());
       const href = $(el).attr("href");
@@ -119,6 +126,13 @@ export async function fetchAndExtract(url: string): Promise<ExtractedPage> {
     })
     .slice(0, 12) as { label: string; href: string }[];
 
+  const searchResults = searchQuery
+    ? await getGoogleSearchResults(searchQuery, $, parsed.toString())
+    : [];
+  const notableLinks = searchQuery
+    ? searchResults.map((result) => ({ label: result.title, href: result.href }))
+    : rawNotableLinks;
+
   const articleText = clean(
     $("article").text() ||
       $("main").text() ||
@@ -130,6 +144,12 @@ export async function fetchAndExtract(url: string): Promise<ExtractedPage> {
     title,
     description,
     searchQuery ? `Search query: ${searchQuery}` : "",
+    searchQuery && searchResults.length === 0
+      ? "Top Google results were not available from the public HTML response. Configure Google Programmable Search API keys for reliable top results."
+      : "",
+    searchResults
+      .map((result, index) => `Result ${index + 1}: ${result.title}. ${result.snippet}. ${result.href}`)
+      .join(". "),
     headings.join(". "),
     notableLinks.map((link) => `${link.label}: ${link.href}`).join(". ")
   ]
@@ -138,7 +158,9 @@ export async function fetchAndExtract(url: string): Promise<ExtractedPage> {
 
   const bodyWordCount = articleText.split(/\s+/).filter(Boolean).length;
   const lowTextBody =
-    bodyWordCount > 0 && notableLinks.length < 3 && articleText.length < 500 ? articleText : "";
+    !searchQuery && bodyWordCount > 0 && notableLinks.length < 3 && articleText.length < 500
+      ? articleText
+      : "";
   const text =
     bodyWordCount < 80
       ? [fallbackText || `Public webpage at ${parsed.hostname}`, lowTextBody]
@@ -153,6 +175,7 @@ export async function fetchAndExtract(url: string): Promise<ExtractedPage> {
     description,
     headings,
     notableLinks,
+    searchResults,
     text,
     wordCount,
     lowText: bodyWordCount < 80
@@ -176,6 +199,107 @@ function normalizeHref(url: URL) {
 
 function looksMojibake(value: string) {
   return /[�ØÙÚÛà¤à¥à¦à¨]/.test(value);
+}
+
+async function getGoogleSearchResults(query: string, $: cheerio.CheerioAPI, baseUrl: string) {
+  const apiResults = await getGoogleProgrammableSearchResults(query);
+  if (apiResults.length > 0) {
+    return apiResults;
+  }
+
+  return parseGoogleHtmlResults($, baseUrl);
+}
+
+async function getGoogleProgrammableSearchResults(query: string): Promise<SearchResult[]> {
+  const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
+  const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;
+
+  if (!apiKey || !searchEngineId) {
+    return [];
+  }
+
+  const url = new URL("https://www.googleapis.com/customsearch/v1");
+  url.searchParams.set("key", apiKey);
+  url.searchParams.set("cx", searchEngineId);
+  url.searchParams.set("q", query);
+  url.searchParams.set("num", "5");
+
+  try {
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = (await response.json()) as {
+      items?: { title?: string; link?: string; snippet?: string }[];
+    };
+
+    return (data.items ?? [])
+      .map((item) => ({
+        title: clean(item.title),
+        href: clean(item.link),
+        snippet: clean(item.snippet)
+      }))
+      .filter((item) => item.title && item.href)
+      .slice(0, 5);
+  } catch {
+    return [];
+  }
+}
+
+function parseGoogleHtmlResults($: cheerio.CheerioAPI, baseUrl: string): SearchResult[] {
+  const results: SearchResult[] = [];
+
+  $("a[href]").each((_, el) => {
+    if (results.length >= 5) {
+      return false;
+    }
+
+    const rawHref = $(el).attr("href");
+    const title = clean($(el).text());
+    if (!rawHref || !title || title.length < 8 || looksMojibake(title)) {
+      return;
+    }
+
+    const href = extractGoogleResultHref(rawHref, baseUrl);
+    if (!href || results.some((result) => result.href === href)) {
+      return;
+    }
+
+    const hostname = new URL(href).hostname.replace(/^www\./, "");
+    results.push({
+      title: title.slice(0, 140),
+      href,
+      snippet: `Public result from ${hostname}`
+    });
+  });
+
+  return results;
+}
+
+function extractGoogleResultHref(rawHref: string, baseUrl: string) {
+  try {
+    const url = new URL(rawHref, baseUrl);
+    const candidate =
+      url.pathname === "/url" ? url.searchParams.get("q") || url.searchParams.get("url") : url.toString();
+
+    if (!candidate) {
+      return "";
+    }
+
+    const resultUrl = new URL(candidate);
+    const blockedHosts = ["google.com", "accounts.google.com", "support.google.com"];
+    if (
+      !["http:", "https:"].includes(resultUrl.protocol) ||
+      blockedHosts.some((host) => resultUrl.hostname === host || resultUrl.hostname.endsWith(`.${host}`))
+    ) {
+      return "";
+    }
+
+    return resultUrl.toString();
+  } catch {
+    return "";
+  }
 }
 
 async function decodeHtmlResponse(response: Response) {

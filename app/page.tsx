@@ -205,6 +205,31 @@ export default function Home() {
                   </ReportSection>
                 ) : null}
 
+                {report.searchResults.length > 0 ? (
+                  <ReportSection title="Top Google Results">
+                    <div className="grid gap-2">
+                      {report.searchResults.slice(0, 5).map((result, index) => (
+                        <a
+                          key={result.href}
+                          href={result.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-md border bg-background px-3 py-2 text-sm transition hover:bg-muted"
+                        >
+                          <span className="mb-1 flex items-center gap-2 font-medium text-foreground">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-secondary text-xs text-secondary-foreground">
+                              {index + 1}
+                            </span>
+                            {result.title}
+                          </span>
+                          <span className="block leading-6 text-muted-foreground">{result.snippet}</span>
+                          <span className="block truncate text-xs text-muted-foreground">{result.href}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </ReportSection>
+                ) : null}
+
                 {report.notableLinks.length > 0 ? (
                   <ReportSection title="Notable Public Links">
                     <div className="grid gap-2">

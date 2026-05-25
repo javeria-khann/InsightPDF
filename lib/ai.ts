@@ -40,8 +40,9 @@ export async function createAiReport(page: ExtractedPage, url: string): Promise<
           description: page.description,
           headings: page.headings,
           notableLinks: page.notableLinks,
+          searchResults: page.searchResults,
           contentNote: page.lowText
-            ? "This page has limited readable body text, so rely on metadata, headings, and public links without inventing facts."
+            ? "This page has limited readable body text, so rely on metadata, headings, search results, and public links without inventing facts."
             : "This page has readable body text.",
           text: page.text
         })
@@ -91,6 +92,26 @@ function createFallbackReport(page: ExtractedPage): AiReport {
       },
       {
         label: "Main Topics",
+        body:
+          page.searchResults.length > 0
+            ? `Top public search results include ${page.searchResults
+                .slice(0, 5)
+                .map((result) => result.title)
+                .join(", ")}.`
+            : page.headings.slice(0, 6).join(", ") ||
+              "The page did not expose many clear headings, so the report focuses on body text."
+      },
+      {
+        label: "Search Results",
+        body:
+          page.searchResults
+            .slice(0, 5)
+            .map((result, index) => `${index + 1}. ${result.title} (${result.href})`)
+            .join("; ") ||
+          "No ranked Google results were available from the response. Add Google Programmable Search API keys for reliable top 5 results."
+      },
+      {
+        label: "Page Headings",
         body:
           page.headings.slice(0, 6).join(", ") ||
           "The page did not expose many clear headings, so the report focuses on body text."

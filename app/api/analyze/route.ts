@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       keyInsights: ai.keyInsights,
       headings: page.headings,
       notableLinks: page.notableLinks,
+      searchResults: page.searchResults,
       sections: ai.sections,
       extractedAt: new Date().toISOString(),
       wordCount: page.wordCount,

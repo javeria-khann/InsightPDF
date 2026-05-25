@@ -87,6 +87,15 @@ export async function downloadReportPdf(report: ReportData) {
     report.headings.slice(0, 10).forEach((heading) => addWrappedText(`- ${heading}`, 10, 15));
   }
 
+  if (report.searchResults.length > 0) {
+    addSectionTitle("Top Google Results");
+    report.searchResults
+      .slice(0, 5)
+      .forEach((result, index) =>
+        addWrappedText(`${index + 1}. ${result.title} - ${result.snippet} ${result.href}`, 9.5, 14)
+      );
+  }
+
   if (report.notableLinks.length > 0) {
     addSectionTitle("Notable Public Links");
     report.notableLinks
