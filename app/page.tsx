@@ -20,8 +20,8 @@ import type { ReportData } from "@/lib/types";
 
 const samples = [
   "https://www.nngroup.com/articles/",
-  "https://openai.com/news/",
-  "https://vercel.com/blog"
+  "https://www.google.com/search?q=nextjs",
+  "https://www.facebook.com/"
 ];
 
 export default function Home() {
@@ -200,6 +200,25 @@ export default function Home() {
                         >
                           {heading}
                         </span>
+                      ))}
+                    </div>
+                  </ReportSection>
+                ) : null}
+
+                {report.notableLinks.length > 0 ? (
+                  <ReportSection title="Notable Public Links">
+                    <div className="grid gap-2">
+                      {report.notableLinks.slice(0, 6).map((link) => (
+                        <a
+                          key={link.href}
+                          href={link.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground transition hover:text-foreground"
+                        >
+                          <span className="block font-medium text-foreground">{link.label}</span>
+                          <span className="block truncate text-xs">{link.href}</span>
+                        </a>
                       ))}
                     </div>
                   </ReportSection>

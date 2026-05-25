@@ -5,6 +5,10 @@ export type ReportData = {
   summary: string;
   keyInsights: string[];
   headings: string[];
+  notableLinks: {
+    label: string;
+    href: string;
+  }[];
   sections: {
     label: string;
     body: string;

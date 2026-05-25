@@ -39,6 +39,10 @@ export async function createAiReport(page: ExtractedPage, url: string): Promise<
           title: page.title,
           description: page.description,
           headings: page.headings,
+          notableLinks: page.notableLinks,
+          contentNote: page.lowText
+            ? "This page has limited readable body text, so rely on metadata, headings, and public links without inventing facts."
+            : "This page has readable body text.",
           text: page.text
         })
       }
@@ -52,10 +56,14 @@ export async function createAiReport(page: ExtractedPage, url: string): Promise<
 
   try {
     const parsed = JSON.parse(raw) as Partial<AiReport>;
+    const fallback = createFallbackReport(page);
+    const keyInsights = ensureStringArray(parsed.keyInsights).slice(0, 6);
+    const sections = ensureSections(parsed.sections).slice(0, 4);
+
     return {
       summary: ensureString(parsed.summary) || createFallbackSummary(page.text),
-      keyInsights: ensureStringArray(parsed.keyInsights).slice(0, 6),
-      sections: ensureSections(parsed.sections).slice(0, 4),
+      keyInsights: keyInsights.length > 0 ? keyInsights : fallback.keyInsights,
+      sections: sections.length > 0 ? sections : fallback.sections,
       aiEnabled: true
     };
   } catch {
@@ -89,7 +97,17 @@ function createFallbackReport(page: ExtractedPage): AiReport {
       },
       {
         label: "Content Notes",
-        body: `InsightPDF extracted roughly ${page.wordCount.toLocaleString()} words from the public webpage.`
+        body: page.lowText
+          ? `This page exposed limited readable body text, so InsightPDF used available metadata, headings, and public links to build the report.`
+          : `InsightPDF extracted roughly ${page.wordCount.toLocaleString()} words from the public webpage.`
+      },
+      {
+        label: "Notable Public Links",
+        body:
+          page.notableLinks
+            .slice(0, 5)
+            .map((link) => `${link.label} (${link.href})`)
+            .join("; ") || "No notable public links were found on the page."
       }
     ],
     aiEnabled: false
@@ -98,7 +116,9 @@ function createFallbackReport(page: ExtractedPage): AiReport {
 
 function createFallbackSummary(text: string) {
   const words = text.split(/\s+/).slice(0, 95).join(" ");
-  return `${words}${text.split(/\s+/).length > 95 ? "..." : ""}`;
+  return words
+    ? `${words}${text.split(/\s+/).length > 95 ? "..." : ""}`
+    : "InsightPDF found limited public information on this page, but still generated a compact report from available signals.";
 }
 
 function ensureString(value: unknown) {

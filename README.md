@@ -6,6 +6,7 @@ InsightPDF is an AI-powered SaaS-style web app that accepts a public URL, extrac
 
 - Public URL input and validation
 - Webpage text and heading extraction with Cheerio
+- Compact reports for low-text public pages using metadata and notable links
 - OpenAI-powered summaries and key insights
 - Fallback report generation when no API key is configured
 - Downloadable PDF reports with `pdf-lib`
@@ -57,7 +58,7 @@ http://localhost:3000
 
 ## Safety Notes
 
-InsightPDF only accepts public `http` and `https` URLs. It rejects localhost and common private network addresses, and it does not attempt to bypass authentication, paywalls, robots protections, or restricted pages.
+InsightPDF only accepts public `http` and `https` URLs. It rejects localhost and common private network addresses, and it does not attempt to bypass authentication, paywalls, robots protections, or restricted pages. Pages with very little readable body text can still generate a compact report from public metadata, headings, and links.
 
 ## Scripts
 
