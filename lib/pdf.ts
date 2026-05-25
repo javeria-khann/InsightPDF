@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { getMoreInfoLinks } from "@/lib/report-links";
 import type { ReportData } from "@/lib/types";
 
 export async function downloadReportPdf(report: ReportData) {
@@ -87,20 +88,13 @@ export async function downloadReportPdf(report: ReportData) {
     report.headings.slice(0, 10).forEach((heading) => addWrappedText(`- ${heading}`, 10, 15));
   }
 
-  if (report.searchResults.length > 0) {
-    addSectionTitle("Top Google Results");
-    report.searchResults
-      .slice(0, 5)
-      .forEach((result, index) =>
-        addWrappedText(`${index + 1}. ${result.title} - ${result.snippet} ${result.href}`, 9.5, 14)
-      );
-  }
-
-  if (report.notableLinks.length > 0) {
-    addSectionTitle("Notable Public Links");
-    report.notableLinks
-      .slice(0, 8)
-      .forEach((link) => addWrappedText(`- ${link.label}: ${link.href}`, 9.5, 14));
+  const moreInfoLinks = getMoreInfoLinks(report);
+  if (moreInfoLinks.length > 0) {
+    addSectionTitle("Find More Information");
+    moreInfoLinks.forEach((link, index) => {
+      const description = link.description ? ` - ${link.description}` : "";
+      addWrappedText(`${index + 1}. ${link.label}${description} ${link.href}`, 9.5, 14);
+    });
   }
 
   report.sections.forEach((section) => {

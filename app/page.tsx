@@ -4,6 +4,7 @@ import {
   ArrowRight,
   CheckCircle2,
   Download,
+  ExternalLink,
   FileText,
   Globe2,
   Loader2,
@@ -16,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { downloadReportPdf } from "@/lib/pdf";
+import { getMoreInfoLinks } from "@/lib/report-links";
 import type { ReportData } from "@/lib/types";
 
 const samples = [
@@ -159,7 +161,22 @@ export default function Home() {
             {loading ? (
               <LoadingState />
             ) : report ? (
-              <div className="flex flex-col gap-5">
+              <ReportPreview report={report} generatedDate={generatedDate} />
+            ) : (
+              <EmptyState />
+            )}
+          </section>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function ReportPreview({ report, generatedDate }: { report: ReportData; generatedDate: string }) {
+  const moreInfoLinks = getMoreInfoLinks(report);
+
+  return (
+    <div className="flex flex-col gap-5">
                 <div className="flex flex-col justify-between gap-4 border-b pb-5 sm:flex-row sm:items-start">
                   <div>
                     <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
@@ -205,13 +222,13 @@ export default function Home() {
                   </ReportSection>
                 ) : null}
 
-                {report.searchResults.length > 0 ? (
-                  <ReportSection title="Top Google Results">
+                {moreInfoLinks.length > 0 ? (
+                  <ReportSection title="Find More Information">
                     <div className="grid gap-2">
-                      {report.searchResults.slice(0, 5).map((result, index) => (
+                      {moreInfoLinks.map((link, index) => (
                         <a
-                          key={result.href}
-                          href={result.href}
+                          key={link.href}
+                          href={link.href}
                           target="_blank"
                           rel="noreferrer"
                           className="rounded-md border bg-background px-3 py-2 text-sm transition hover:bg-muted"
@@ -220,29 +237,15 @@ export default function Home() {
                             <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-secondary text-xs text-secondary-foreground">
                               {index + 1}
                             </span>
-                            {result.title}
+                            <span className="min-w-0 flex-1">{link.label}</span>
+                            <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                           </span>
-                          <span className="block leading-6 text-muted-foreground">{result.snippet}</span>
-                          <span className="block truncate text-xs text-muted-foreground">{result.href}</span>
-                        </a>
-                      ))}
-                    </div>
-                  </ReportSection>
-                ) : null}
-
-                {report.notableLinks.length > 0 ? (
-                  <ReportSection title="Notable Public Links">
-                    <div className="grid gap-2">
-                      {report.notableLinks.slice(0, 6).map((link) => (
-                        <a
-                          key={link.href}
-                          href={link.href}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground transition hover:text-foreground"
-                        >
-                          <span className="block font-medium text-foreground">{link.label}</span>
-                          <span className="block truncate text-xs">{link.href}</span>
+                          {link.description ? (
+                            <span className="block leading-6 text-muted-foreground">
+                              {link.description}
+                            </span>
+                          ) : null}
+                          <span className="block truncate text-xs text-muted-foreground">{link.href}</span>
                         </a>
                       ))}
                     </div>
@@ -254,14 +257,7 @@ export default function Home() {
                   <Metric label="Sections" value={report.sections.length.toString()} />
                   <Metric label="Mode" value={report.aiEnabled ? "AI" : "Fallback"} />
                 </div>
-              </div>
-            ) : (
-              <EmptyState />
-            )}
-          </section>
-        </section>
-      </div>
-    </main>
+    </div>
   );
 }
 
