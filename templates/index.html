@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>InsightPDF</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-icon">IP</div>
+          <div>
+            <strong>InsightPDF</strong>
+            <span>Python URL intelligence report builder</span>
+          </div>
+        </div>
+        <button class="icon-button" id="themeToggle" type="button" aria-label="Toggle theme">◐</button>
+      </header>
+
+      <section class="layout">
+        <div class="left-column">
+          <section class="intro">
+            <span class="eyebrow">Beautiful Soup powered extraction</span>
+            <h1>Turn public webpages into polished PDF reports.</h1>
+            <p>
+              Paste a public URL, extract important content with Python and Beautiful Soup,
+              summarize it, and export a clean client-ready PDF.
+            </p>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Analyze a URL</h2>
+              <p>Works with public articles, docs, blogs, landing pages, and Google Search URLs.</p>
+            </div>
+
+            <form id="analyzeForm" class="form">
+              <div class="input-row">
+                <input
+                  id="urlInput"
+                  type="url"
+                  placeholder="https://example.com/article"
+                  required
+                />
+                <button id="analyzeButton" class="primary-button" type="submit">
+                  Analyze
+                </button>
+              </div>
+              <div class="samples">
+                <button type="button" data-url="https://www.nngroup.com/articles/">nngroup.com</button>
+                <button type="button" data-url="https://www.google.com/search?q=python+web+scraping">google search</button>
+                <button type="button" data-url="https://www.facebook.com/">facebook.com</button>
+              </div>
+            </form>
+
+            <div id="errorBox" class="error hidden"></div>
+          </section>
+
+          <section class="feature-grid">
+            <div>Public URLs only</div>
+            <div>AI or fallback summary</div>
+            <div>PDF export</div>
+          </section>
+        </div>
+
+        <section class="report-panel" id="reportPanel">
+          <div class="empty-state">
+            <div class="empty-icon">PDF</div>
+            <h2>Your report preview will appear here</h2>
+            <p>InsightPDF organizes public webpage data, insights, and up to 5 links for more information.</p>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>

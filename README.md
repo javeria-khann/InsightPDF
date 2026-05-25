@@ -1,51 +1,57 @@
 # InsightPDF
 
-InsightPDF is an AI-powered SaaS-style web app that accepts a public URL, extracts important webpage content, summarizes it, and generates a clean downloadable PDF report.
+InsightPDF is a Python web application that accepts a public URL, extracts important webpage information with Beautiful Soup, summarizes the content with AI or a local fallback, and generates a clean downloadable PDF report.
 
 ## Features
 
 - Public URL input and validation
-- Webpage text and heading extraction with Cheerio
-- Compact reports for low-text public pages using metadata and notable links
-- Top 5 Google results for Google Search URLs when Google Search API keys are configured
-- OpenAI-powered summaries and key insights
-- Fallback report generation when no API key is configured
-- Downloadable PDF reports with `pdf-lib`
-- Responsive dashboard UI with Tailwind CSS and shadcn-style components
+- Webpage extraction with Python, Requests, and Beautiful Soup
+- OpenAI-powered summaries and fallback summaries
+- Top 5 Google results for Google Search URLs when Google Programmable Search keys are configured
+- Up to 5 clickable links for finding more information
+- Downloadable PDF reports with ReportLab
+- Responsive SaaS-style dashboard UI
 - Dark and light mode
 - Loading states and error handling
 
 ## Tech Stack
 
-- Next.js
-- TypeScript
-- Tailwind CSS
-- shadcn/ui-style reusable components
+- Python
+- Flask
+- Beautiful Soup
+- Requests
 - OpenAI API
-- Cheerio
-- pdf-lib
+- ReportLab
+- HTML, CSS, and JavaScript
 
 ## Getting Started
+
+Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
 
 Install dependencies:
 
 ```bash
-npm install
+pip install -r requirements.txt
 ```
 
 Create a local environment file:
 
 ```bash
-cp .env.example .env.local
+copy .env.example .env
 ```
 
-Add your OpenAI key:
+Optional AI summaries:
 
 ```bash
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-Optional: add Google Programmable Search keys for reliable top-result reports from Google Search URLs:
+Optional reliable Google top results:
 
 ```bash
 GOOGLE_SEARCH_API_KEY=your_google_custom_search_api_key_here
@@ -55,23 +61,31 @@ GOOGLE_SEARCH_ENGINE_ID=your_google_programmable_search_engine_id_here
 Run the app:
 
 ```bash
-npm run dev
+python app.py
 ```
 
 Open:
 
-```bash
-http://localhost:3000
+```text
+http://127.0.0.1:5000
 ```
 
 ## Safety Notes
 
-InsightPDF only accepts public `http` and `https` URLs. It rejects localhost and common private network addresses, and it does not attempt to bypass authentication, paywalls, robots protections, or restricted pages. Pages with very little readable body text can still generate a compact report from public metadata, headings, and links. For Google Search URLs, the app uses the official Programmable Search API when keys are present and falls back to public HTML links only when they are available.
+InsightPDF only accepts public `http` and `https` URLs. It rejects localhost and private network addresses, and it does not bypass authentication, paywalls, restricted pages, or private systems. For Google Search URLs, the app uses Google Programmable Search when keys are present and falls back to public HTML only when results are available.
 
-## Scripts
+## Project Structure
 
-```bash
-npm run dev
-npm run build
-npm run lint
+```text
+app.py
+insightpdf/
+  ai.py
+  models.py
+  pdf.py
+  scraper.py
+templates/
+  index.html
+static/
+  app.js
+  styles.css
 ```
